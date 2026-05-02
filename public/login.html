@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wi-Fi Guest - Login</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f4f4f9; padding-top: 50px; }
+        .container { background: white; padding: 30px; border-radius: 8px; display: inline-block; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        #qrcode img { margin: 20px auto; border: 10px solid white; }
+        .status { margin-top: 20px; font-weight: bold; color: #555; }
+        .ok { color: green; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Accedi al Wi-Fi</h1>
+        <p>Presenta la tua credenziale BCWallet</p>
+        <div id="qrcode">Caricamento QR...</div>
+        <div id="status" class="status">In attesa di scansione...</div>
+    </div>
+
+    <script>
+        async function caricaLogin() {
+            const res = await fetch('/connect');
+            const data = await res.json();
+            const connId = data.connectionId;
+            
+            document.getElementById('qrcode').innerHTML = `<img src="${data.qrCodeDataUrl}" width="300">`;
+
+            const poll = setInterval(async () => {
+                const vRes = await fetch('/verify', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ connectionId: connId })
+                });
+                const vData = await vRes.json();
+                if(vData.ok) {
+                    clearInterval(poll);
+                    document.getElementById('status').innerHTML = "<span class='ok'>Accesso Autorizzato! Reindirizzamento...</span>";
+                    setTimeout(() => window.location.href = "http://google.com", 2000);
+                }
+            }, 3000);
+        }
+
+        caricaLogin();
+    </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wi-Fi Guest - Registrazione</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 400px; width: 100%; }
+        .card { border: 1px solid #eee; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        .ok { color: green; }
+        .err { color: red; }
+        #qrcode img { display: block; margin: 15px auto; border: 5px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Registrazione Wi-Fi</h1>
+        
+        <div class="card">
+            <h3>1. Ricevi il codice</h3>
+            <input type="email" id="email" placeholder="Inserisci la tua email">
+            <button onclick="inviaEmail()">Invia Codice</button>
+            <div id="msgEmail"></div>
+        </div>
+
+        <div class="card">
+            <h3>2. Verifica e ottieni credenziale</h3>
+            <input type="text" id="otp" placeholder="Codice a 6 cifre">
+            <button onclick="verificaOTP()">Verifica Codice</button>
+            <div id="msgOTP"></div>
+            <div id="qrcode"></div>
+            <div id="msgIssue" class="ok"></div>
+        </div>
+
+        <div class="card" style="background: #e9ecef;">
+            <p>Hai già la credenziale?</p>
+            <button style="background: #28a745;" onclick="window.location.href='/login'">Accedi Ora</button>
+        </div>
+    </div>
+
+    <script>
+        let userEmail = '';
+        let connId = '';
+
+        async function inviaEmail() {
+            userEmail = document.getElementById('email').value;
+            const res = await fetch('/email/send', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: userEmail })
+            });
+            const data = await res.json();
+            document.getElementById('msgEmail').innerText = data.ok ? "Email inviata!" : "Errore.";
+        }
+
+        async function verificaOTP() {
+            const otp = document.getElementById('otp').value;
+            const res = await fetch('/email/verify', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: userEmail, otp: otp })
+            });
+            const data = await res.json();
+            if(data.ok) {
+                connId = data.connectionId;
+                const qrDiv = document.getElementById('qrcode');
+                qrDiv.innerHTML = `<img src="${data.qrCodeDataUrl}" width="250">`;
+                document.getElementById('msgOTP').innerText = "Scansiona con BCWallet!";
+                avviaPollingEmissione();
+            }
+        }
+
+        function avviaPollingEmissione() {
+            const poll = setInterval(async () => {
+                const res = await fetch('/issue', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ connectionId: connId, email: userEmail })
+                });
+                const data = await res.json();
+                if(data.ok) {
+                    clearInterval(poll);
+                    document.getElementById('msgIssue').innerHTML = "Credenziale emessa! <br><b>Ora puoi andare alla pagina di login.</b>";
+                    document.getElementById('qrcode').innerHTML = "";
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
