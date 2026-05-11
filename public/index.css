@@ -50,6 +50,11 @@ button:hover {
     background: #0056b3;
 }
 
+button:disabled {
+    background: #aaa;
+    cursor: not-allowed;
+}
+
 button.btn-success {
     background: #28a745;
 }

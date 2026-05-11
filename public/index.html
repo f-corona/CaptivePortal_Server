@@ -12,14 +12,14 @@
         
         <div class="card">
             <h3>1. Ricevi il codice</h3>
-            <input type="email" id="email" placeholder="Inserisci la tua email">
-            <button onclick="inviaEmail()">Invia Codice</button>
+            <input type="email" id="email" placeholder="Inserisci la tua email" autocomplete="off">
+            <button id="btnInviaEmail" onclick="inviaEmail()">Invia Codice</button>
             <div id="msgEmail"></div>
         </div>
 
         <div class="card">
             <h3>2. Verifica e ottieni credenziale</h3>
-            <input type="text" id="otp" placeholder="Codice a 6 cifre">
+            <input type="text" id="otp" placeholder="Codice a 6 cifre" autocomplete="off">
             <button onclick="verificaOTP()">Verifica Codice</button>
             <div id="msgOTP"></div>
             <div id="qrcode"></div>
@@ -36,6 +36,28 @@
         let userEmail = '';
         let connId = '';
 
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('email').value = '';
+            document.getElementById('otp').value = '';
+        });
+
+        function avviaCooldown() {
+            const btn = document.getElementById('btnInviaEmail');
+            let secondi = 20;
+            btn.disabled = true;
+            btn.textContent = 'Riprova tra ' + secondi + 's';
+            const timer = setInterval(function() {
+                secondi--;
+                if (secondi <= 0) {
+                    clearInterval(timer);
+                    btn.disabled = false;
+                    btn.textContent = 'Invia Codice';
+                } else {
+                    btn.textContent = 'Riprova tra ' + secondi + 's';
+                }
+            }, 1000);
+        }
+
         async function inviaEmail() {
             userEmail = document.getElementById('email').value;
             const res = await fetch('/email/send', {
@@ -45,6 +67,7 @@
             });
             const data = await res.json();
             document.getElementById('msgEmail').innerText = data.ok ? "Email inviata!" : "Errore.";
+            if (data.ok) avviaCooldown();
         }
 
         async function verificaOTP() {
