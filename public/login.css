@@ -24,6 +24,19 @@ body {
     color: #555;
 }
 
+.logo-header {
+    display: block;
+    margin: 0 auto 15px;
+    max-width: 100px;
+}
+
+.banner-footer {
+    display: block;
+    width: 100%;
+    margin-top: 25px;
+    border-radius: 4px;
+}
+
 .ok {
     color: green;
 }

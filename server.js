@@ -8,6 +8,7 @@ const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static('public'))
+app.use('/images', express.static('images'))
 
 const SSI_SERVER = process.env.SSI_SERVICE_URL || 'http://192.168.0.102:3000'
 const PORT = process.env.PORT || 3000

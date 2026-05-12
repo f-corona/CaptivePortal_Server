@@ -63,6 +63,19 @@ button.btn-success:hover {
     background: #1e7e34;
 }
 
+.logo-header {
+    display: block;
+    margin: 0 auto 15px;
+    max-width: 100px;
+}
+
+.banner-footer {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    border-radius: 4px;
+}
+
 .ok {
     color: green;
 }
