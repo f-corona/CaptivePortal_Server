@@ -16,28 +16,25 @@
 
     <script>
         async function caricaLogin() {
-            const res = await fetch('/connect');
-            const data = await res.json();
-            const connId = data.connectionId;
-            
-            document.getElementById('qrcode').innerHTML = `<img src="${data.qrCodeDataUrl}" width="300">`;
+    const res = await fetch('/connect');
+    const data = await res.json();
+    const connId = data.connectionId;
+    document.getElementById('qrcode').innerHTML = `<img src="${data.qrCodeDataUrl}" width="300">`;
 
-            const poll = setInterval(async () => {
-                const vRes = await fetch('/verify', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ connectionId: connId })
-                });
-                const vData = await vRes.json();
-                if(vData.ok) {
-                    clearInterval(poll);
-                    document.getElementById('status').innerHTML = "<span class='ok'>Accesso Autorizzato! Reindirizzamento...</span>";
-                    setTimeout(() => window.location.href = "http://google.com", 2000);
-                }
-            }, 3000);
-        }
+    //una sola chiamata, aspetta la risposta
+    const vRes = await fetch('/verify', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ connectionId: connId })
+    });
+    const vData = await vRes.json();
+    if(vData.ok) {
+        document.getElementById('status').innerHTML = "<span class='ok'>Accesso Autorizzato! Reindirizzamento...</span>";
+        setTimeout(() => window.location.href = "http://google.com", 2000);
+    }
+}
 
-        caricaLogin();
+caricaLogin();
     </script>
 </body>
 </html>

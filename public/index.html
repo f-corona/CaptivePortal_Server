@@ -71,37 +71,32 @@
         }
 
         async function verificaOTP() {
-            const otp = document.getElementById('otp').value;
-            const res = await fetch('/email/verify', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email: userEmail, otp: otp })
-            });
-            const data = await res.json();
-            if(data.ok) {
-                connId = data.connectionId;
-                const qrDiv = document.getElementById('qrcode');
-                qrDiv.innerHTML = `<img src="${data.qrCodeDataUrl}" width="250">`;
-                document.getElementById('msgOTP').innerText = "Scansiona con BCWallet!";
-                avviaPollingEmissione();
-            }
-        }
+    const otp = document.getElementById('otp').value;
+    const res = await fetch('/email/verify', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ email: userEmail, otp: otp })
+    });
+    const data = await res.json();
+    if(data.ok) {
+        connId = data.connectionId;
+        document.getElementById('qrcode').innerHTML = `<img src="${data.qrCodeDataUrl}" width="250">`;
+        document.getElementById('msgOTP').innerText = "Scansiona con BCWallet!";
 
-        function avviaPollingEmissione() {
-            const poll = setInterval(async () => {
-                const res = await fetch('/issue', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ connectionId: connId, email: userEmail })
-                });
-                const data = await res.json();
-                if(data.ok) {
-                    clearInterval(poll);
-                    document.getElementById('msgIssue').innerHTML = "Credenziale emessa! <br><b>Ora puoi andare alla pagina di login.</b>";
-                    document.getElementById('qrcode').innerHTML = "";
-                }
-            }, 3000);
+        //una sola chiamata, aspetta la risposta
+        const issueRes = await fetch('/issue', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ connectionId: connId, email: userEmail })
+        });
+        const issueData = await issueRes.json();
+        if (issueData.ok) {
+            document.getElementById('msgIssue').innerHTML = "Credenziale emessa! <br><b>Ora puoi andare alla pagina di login.</b>";
+            document.getElementById('qrcode').innerHTML = "";
         }
+    }
+}
+
     </script>
 </body>
 </html>
